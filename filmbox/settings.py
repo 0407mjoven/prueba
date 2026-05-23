@@ -9,7 +9,8 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+import dj_database_url
+import os
 import pymysql
 pymysql.install_as_MySQLdb()
 
@@ -105,7 +106,11 @@ DATABASES = {
     }
 }
 
-
+if 'DATABASE_URL' in os.environ:
+    DATABASES['default'] = dj_database_url.config(
+        conn_max_age=600,
+        ssl_require=True
+    )
 # Custom user model
 AUTH_USER_MODEL = 'usuarios.Usuario'
 
