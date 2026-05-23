@@ -1,0 +1,499 @@
+{% extends "base/base.html" %}
+
+{% block title %}Perfil de {{ perfil_usuario.username }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --bg: #191919;
+    --panel: #262626;
+    --muted: #bdbdbd;
+    --accent-dark: #7b3eb5;
+    --white: #f6f6f6;
+  }
+
+  * { box-sizing: border-box }
+
+  body {
+    margin: 0;
+    font-family: 'Gantari', sans-serif;
+    background: var(--bg);
+    color: var(--white);
+  }
+
+  .main {
+    max-width: 1200px;
+    margin: 28px auto;
+    padding: 0 24px;
+  }
+
+  .columns {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+
+  .left {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .profile-photo-icon {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 6px solid rgba(123, 62, 181, 0.08);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .profile-photo-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .name {
+    font-size: 30px;
+    font-weight: 700;
+    font-family: 'Exo 2', sans-serif;
+    color: white;
+    margin-bottom: -15px;
+  }
+
+  .username {
+    font-size: 16px;
+    color: var(--muted);
+    font-family: 'Exo 2', sans-serif;
+    margin-bottom: -20px;
+  }
+
+  .seguir-btn {
+    background: #6E32D5;
+    color: var(--white);
+    width: 260px;
+    height: 50px;
+    padding: 12px 18px;
+    border-radius: 8px;
+    border: 0;
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    justify-content: center;
+    transition: transform 0.6s ease, background 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .seguir-btn:hover {
+    background: linear-gradient(100deg, #6E32D5 0%, #6C00FA 100%);
+    color: var(--white);
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+    transform: translateY(-2px) scale(1.05);
+  }
+
+  .seguir-btn.siguiendo {
+    background: rgba(110, 50, 213, 0.12);
+    color: #D9BDFE;
+    border: 1px solid rgba(110, 50, 213, 0.4);
+  }
+
+  .seguir-btn.siguiendo:hover {
+    background: rgba(211, 51, 51, 0.15);
+    border-color: rgba(211, 51, 51, 0.5);
+    color: #f87171;
+    box-shadow: none;
+  }
+
+
+  .admin-card {
+    background: #D9BDFE;
+    color: #7b3eb5;
+    width: 150px;
+    height: 30px;
+    border-radius: 8px;
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .follow-link {
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .follow-link:hover { color: #D9BDFE; text-decoration: none; }
+
+  .follows {
+    display: flex;
+    gap: 28px;
+    font-family: 'Gantari', sans-serif;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .desc {
+    color: white;
+    margin-top: 12px;
+    max-width: 260px;
+    font-family: 'Gantari', sans-serif;
+    text-align: justify;
+  }
+
+  .right {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  h2.section {
+    margin: 0 0 8px 0;
+    color: white;
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'Gantari', sans-serif;
+    letter-spacing: 2px;
+  }
+
+  /* FAVORITAS */
+  .favorites {
+    display: flex;
+    gap: 18px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .fav-card {
+    width: 100%;
+    min-width: 0;
+    aspect-ratio: 2 / 3;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .fav-card--empty { visibility: hidden; }
+
+  .fav-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .fav-link {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  /* LISTAS */
+  .listas-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+
+  .lista-card {
+    background: #262626;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+  }
+
+  .lista-card:hover {
+    border-color: rgba(208, 179, 255, 0.5);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(110, 50, 213, 0.18);
+  }
+
+  .poster-strip {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    background: #141414;
+    overflow: hidden;
+  }
+
+  .poster-strip img {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    display: block;
+  }
+
+  .poster-placeholder {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.1);
+    font-size: 22px;
+  }
+
+  .poster-strip-empty {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.08);
+    font-size: 32px;
+  }
+
+  .card-body-lista {
+    padding: 14px 16px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+  }
+
+  .lista-nombre {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fafafa;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .lista-descripcion {
+    font-size: 12px;
+    color: #bdbdbd;
+    margin: 0;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 36px;
+  }
+
+  .lista-meta {
+    margin-top: auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding-top: 5px;
+  }
+
+  .meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.38);
+  }
+
+  .meta-chip .highlight { color: #b39ddb; font-weight: 600; }
+
+  .card-actions {
+    padding: 0 16px 14px;
+  }
+
+  .btn-ver {
+    display: inline-block;
+    width: 100%;
+    background: #6E32D5;
+    color: #fff;
+    border: none;
+    padding: 8px 0;
+    border-radius: 8px;
+    font-family: 'Gantari', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .btn-ver:hover {
+    background: #6C00FA;
+    color: #fff;
+    transform: translateY(-1px);
+    text-decoration: none;
+  }
+
+  .listas-empty {
+    background: #262626;
+    border: 1.5px dashed rgba(255, 255, 255, 0.09);
+    border-radius: 14px;
+    padding: 40px 30px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.28);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .listas-empty i {
+    font-size: 34px;
+    display: block;
+    margin-bottom: 12px;
+    opacity: 0.3;
+  }
+
+  @media (max-width: 900px) {
+    .columns { grid-template-columns: 1fr; }
+    .listas-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="main">
+  <div class="columns">
+    <aside class="left">
+
+      <div class="profile-photo-icon">
+        <img src="{{ perfil_usuario.profile.profile_image_url }}" class="profile-photo-img" alt="Foto de perfil">
+      </div>
+
+      <div class="name">{{ perfil_usuario.profile.name }}</div>
+
+      <div class="username">
+        <p>@{{ perfil_usuario.username }}</p>
+      </div>
+
+      {% if perfil_usuario.is_staff %}
+      <div class="admin-card">ADMINISTRADOR</div>
+      {% endif %}
+
+      <div class="follows">
+        <a href="{% url 'seguimientos' perfil_usuario.username %}?tab=siguiendo" class="follow-link"><strong>{{ perfil_usuario.seguidos.count }}</strong> siguiendo</a>
+        <a href="{% url 'seguimientos' perfil_usuario.username %}?tab=seguidores" class="follow-link"><strong>{{ perfil_usuario.seguidores.count }}</strong> seguidores</a>
+      </div>
+
+      <div class="desc">{{ perfil_usuario.profile.description }}</div>
+
+      {% if perfil_usuario != request.user %}
+      <form method="post" action="{% url 'seguir' perfil_usuario.username %}">
+        {% csrf_token %}
+        <button type="submit" class="seguir-btn {% if ya_sigue %}siguiendo{% endif %}">
+          {% if ya_sigue %}
+          <i class="bi bi-person-check" style="font-size:1.3rem;"></i> SIGUIENDO
+          {% else %}
+          <i class="bi bi-person-plus" style="font-size:1.3rem;"></i> SEGUIR
+          {% endif %}
+        </button>
+      </form>
+      {% endif %}
+
+    </aside>
+
+    <section class="right">
+
+      <!-- FAVORITAS -->
+      <div>
+        <h2 class="section">FAVORITAS</h2>
+        <hr style="border-color: white; margin-bottom: 20px;">
+        <div class="favorites">
+          {% with fav=perfil_usuario.profile.fav1 %}
+          <div class="fav-card{% if not fav %} fav-card--empty{% endif %}">
+            {% if fav %}<a href="{% url 'pelicula' fav.id %}" class="fav-link"></a>{% endif %}
+            {% if fav %}{% if fav.poster %}<img src="{{ fav.poster.url }}" alt="{{ fav.titulo }}">
+            {% else %}<span style="padding:10px;text-align:center;font-size:11px;color:rgba(255,255,255,0.75)">{{ fav.titulo }}</span>{% endif %}{% endif %}
+          </div>
+          {% endwith %}
+
+          {% with fav=perfil_usuario.profile.fav2 %}
+          <div class="fav-card{% if not fav %} fav-card--empty{% endif %}">
+            {% if fav %}<a href="{% url 'pelicula' fav.id %}" class="fav-link"></a>{% endif %}
+            {% if fav %}{% if fav.poster %}<img src="{{ fav.poster.url }}" alt="{{ fav.titulo }}">
+            {% else %}<span style="padding:10px;text-align:center;font-size:11px;color:rgba(255,255,255,0.75)">{{ fav.titulo }}</span>{% endif %}{% endif %}
+          </div>
+          {% endwith %}
+
+          {% with fav=perfil_usuario.profile.fav3 %}
+          <div class="fav-card{% if not fav %} fav-card--empty{% endif %}">
+            {% if fav %}<a href="{% url 'pelicula' fav.id %}" class="fav-link"></a>{% endif %}
+            {% if fav %}{% if fav.poster %}<img src="{{ fav.poster.url }}" alt="{{ fav.titulo }}">
+            {% else %}<span style="padding:10px;text-align:center;font-size:11px;color:rgba(255,255,255,0.75)">{{ fav.titulo }}</span>{% endif %}{% endif %}
+          </div>
+          {% endwith %}
+
+          {% with fav=perfil_usuario.profile.fav4 %}
+          <div class="fav-card{% if not fav %} fav-card--empty{% endif %}">
+            {% if fav %}<a href="{% url 'pelicula' fav.id %}" class="fav-link"></a>{% endif %}
+            {% if fav %}{% if fav.poster %}<img src="{{ fav.poster.url }}" alt="{{ fav.titulo }}">
+            {% else %}<span style="padding:10px;text-align:center;font-size:11px;color:rgba(255,255,255,0.75)">{{ fav.titulo }}</span>{% endif %}{% endif %}
+          </div>
+          {% endwith %}
+        </div>
+      </div>
+
+      <!-- LISTAS -->
+      <div>
+        <h2 class="section">LISTAS</h2>
+        <hr style="border-color: white; margin-bottom: 16px;">
+
+        {% if mis_listas %}
+        <div class="listas-grid">
+          {% for d in mis_listas %}
+          <div class="lista-card">
+            <div class="poster-strip">
+              {% if d.preview %}
+                {% for item in d.preview %}
+                  {% if item.pelicula.poster %}
+                  <img src="{{ item.pelicula.poster.url }}" alt="{{ item.pelicula.titulo }}">
+                  {% else %}
+                  <div class="poster-placeholder"><i class="bi bi-film"></i></div>
+                  {% endif %}
+                {% endfor %}
+              {% else %}
+              <div class="poster-strip-empty"><i class="bi bi-collection-play"></i></div>
+              {% endif %}
+            </div>
+            <div class="card-body-lista">
+              <p class="lista-nombre">{{ d.lista.nombre_lista }}</p>
+              <p class="lista-descripcion">{{ d.lista.descripcion|default:"Sin descripción." }}</p>
+              <div class="lista-meta">
+                <span class="meta-chip">
+                  <i class="bi bi-film"></i>
+                  <span class="highlight">{{ d.count }}</span> película{{ d.count|pluralize:"s" }}
+                </span>
+                <span class="meta-chip">
+                  <i class="bi bi-calendar3"></i>
+                  {{ d.lista.fecha_creacion|date:"d M Y" }}
+                </span>
+              </div>
+            </div>
+            <div class="card-actions">
+              <a href="{% url 'ver_lista' d.lista.id %}" class="btn-ver">Ver lista</a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="listas-empty">
+          <i class="bi bi-collection-play"></i>
+          Este usuario no tiene listas aún.
+        </div>
+        {% endif %}
+      </div>
+
+    </section>
+  </div>
+</main>
+{% endblock %}
